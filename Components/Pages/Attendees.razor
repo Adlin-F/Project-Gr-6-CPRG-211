@@ -1,0 +1,92 @@
+﻿@page "/attendees"
+
+<h1>Attendees</h1>
+
+@if (attendees == null || !attendees.Any())
+{
+    <p>No attendees available.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var attendee in attendees)
+            {
+                <tr>
+                    <td>@attendee.Name</td>
+                    <td>@attendee.Email</td>
+                    <td>@attendee.PhoneNumber</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditAttendee(attendee)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAttendee(attendee)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Add New Attendee</h2>
+<EditForm Model="newAttendee" OnValidSubmit="AddAttendee">
+    <div class="mb-3">
+        <label for="name">Name:</label>
+        <InputText id="name" class="form-control" @bind-Value="newAttendee.Name" />
+    </div>
+    <div class="mb-3">
+        <label for="email">Email:</label>
+        <InputText id="email" class="form-control" @bind-Value="newAttendee.Email" />
+    </div>
+    <div class="mb-3">
+        <label for="phone">Phone Number:</label>
+        <InputText id="phone" class="form-control" @bind-Value="newAttendee.PhoneNumber" />
+    </div>
+    <button type="submit" class="btn btn-success">Add Attendee</button>
+</EditForm>
+
+@code {
+    private List<Attendee> attendees;
+    private Attendee newAttendee = new Attendee();
+
+    protected override void OnInitialized()
+    {
+        // Simulate initial data
+        attendees = new List<Attendee>
+        {
+            new Attendee { AttendeeId = 1, Name = "Alice Johnson", Email = "alice@example.com", PhoneNumber = "123-456-7890" },
+            new Attendee { AttendeeId = 2, Name = "Bob Smith", Email = "bob@example.com", PhoneNumber = "987-654-3210" }
+        };
+    }
+
+    private void AddAttendee()
+    {
+        newAttendee.AttendeeId = attendees.Count + 1;
+        attendees.Add(new Attendee
+            {
+                AttendeeId = newAttendee.AttendeeId,
+                Name = newAttendee.Name,
+                Email = newAttendee.Email,
+                PhoneNumber = newAttendee.PhoneNumber
+            });
+
+        // Clear the form
+        newAttendee = new Attendee();
+    }
+
+    private void EditAttendee(Attendee attendee)
+    {
+        // Add logic for editing an attendee (e.g., open a modal or inline editing)
+    }
+
+    private void DeleteAttendee(Attendee attendee)
+    {
+        attendees.Remove(attendee);
+    }
+}

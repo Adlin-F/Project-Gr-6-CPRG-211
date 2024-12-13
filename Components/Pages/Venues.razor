@@ -1,0 +1,92 @@
+﻿@page "/venues"
+
+<h1>Venues</h1>
+
+@if (venues != null && venues.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Venue Name</th>
+                <th>Capacity</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var venue in venues)
+            {
+                <tr>
+                    <td>@venue.Name</td>
+                    <td>@venue.Capacity</td>
+                    <td>@venue.Location</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditVenue(venue)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteVenue(venue)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No venues available.</p>
+}
+
+<h2>Add New Venue</h2>
+<EditForm Model="newVenue" OnValidSubmit="AddVenue">
+    <div class="mb-3">
+        <label for="name">Venue Name:</label>
+        <InputText id="name" class="form-control" @bind-Value="newVenue.Name" />
+    </div>
+    <div class="mb-3">
+        <label for="capacity">Capacity:</label>
+        <InputNumber id="capacity" class="form-control" @bind-Value="newVenue.Capacity" />
+    </div>
+    <div class="mb-3">
+        <label for="location">Location:</label>
+        <InputText id="location" class="form-control" @bind-Value="newVenue.Location" />
+    </div>
+    <button type="submit" class="btn btn-success">Add Venue</button>
+</EditForm>
+
+@code {
+    private List<Venue> venues;
+    private Venue newVenue = new Venue();
+
+    protected override void OnInitialized()
+    {
+        // Simulate initial data
+        venues = new List<Venue>
+        {
+            new Venue { VenueId = 1, Name = "Grand Hall", Capacity = 500, Location = "Downtown" },
+            new Venue { VenueId = 2, Name = "Conference Room A", Capacity = 50, Location = "Midtown" }
+        };
+    }
+
+    private void AddVenue()
+    {
+        newVenue.VenueId = venues.Count + 1;
+        venues.Add(new Venue
+            {
+                VenueId = newVenue.VenueId,
+                Name = newVenue.Name,
+                Capacity = newVenue.Capacity,
+                Location = newVenue.Location
+            });
+
+        // Clear the form
+        newVenue = new Venue();
+    }
+
+    private void EditVenue(Venue venue)
+    {
+        // Add logic to handle editing the venue
+    }
+
+    private void DeleteVenue(Venue venue)
+    {
+        venues.Remove(venue);
+    }
+}

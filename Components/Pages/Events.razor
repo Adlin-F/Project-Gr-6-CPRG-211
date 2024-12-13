@@ -1,0 +1,135 @@
+﻿@page "/events"
+@using MauiApp1.Models
+@using Microsoft.EntityFrameworkCore
+@inject Lab9DbContext DbContext
+
+<div style="padding: 20px; max-width: 800px; margin: auto;">
+    <h2>Event Management</h2>
+
+    @if (!string.IsNullOrEmpty(connectionStatus))
+    {
+        <p style="color: @(connectionStatus.Contains("Error") ? "red" : "green");">@connectionStatus</p>
+    }
+
+    <h3>Event List</h3>
+    @if (events != null && events.Any())
+    {
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr style="background-color: #f4f4f4; text-align: left;">
+                    <th style="border: 1px solid #ddd; padding: 8px;">Event ID</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Name</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Description</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Venue</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var evt in events)
+                {
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">@evt.EventId</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">@evt.Name</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">@evt.Description</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">@evt.Date.ToString("g")</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">@evt.Venue?.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else if (events != null && !events.Any())
+    {
+        <p>No events found in the database.</p>
+    }
+    else
+    {
+        <p>Loading events...</p>
+    }
+
+    <h3>Add a New Event</h3>
+    <form @onsubmit="AddEvent" style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; background-color: #f9f9f9;">
+        <div style="margin-bottom: 10px;">
+            <label>Event Name:</label>
+            <input type="text" @bind="newEvent.Name" required style="width: 100%; padding: 8px; margin-top: 5px;" />
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label>Description:</label>
+            <input type="text" @bind="newEvent.Description" required style="width: 100%; padding: 8px; margin-top: 5px;" />
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label>Date:</label>
+            <input type="datetime-local" @bind="newEvent.Date" required style="width: 100%; padding: 8px; margin-top: 5px;" />
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label>Venue ID:</label>
+            <input type="number" @bind="newEvent.VenueId" required style="width: 100%; padding: 8px; margin-top: 5px;" />
+        </div>
+
+        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Add Event
+        </button>
+    </form>
+</div>
+
+@code {
+    private List<Event>? events;
+    private Event newEvent = new Event(); // Holds the data for the new event
+    private string? connectionStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            events = await DbContext.Events.Include(e => e.Venue).ToListAsync();
+            if (events != null)
+            {
+                connectionStatus = "Connection successful. Database connected.";
+                Console.WriteLine("Database connection successful.");
+            }
+        }
+        catch (Exception ex)
+        {
+            connectionStatus = $"Error connecting to the database: {ex.Message}";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task AddEvent()
+    {
+        try
+        {
+            if (newEvent != null &&
+                !string.IsNullOrWhiteSpace(newEvent.Name) &&
+                !string.IsNullOrWhiteSpace(newEvent.Description) &&
+                newEvent.VenueId > 0)
+            {
+                // Add the new event to the database
+                DbContext.Events.Add(newEvent);
+                await DbContext.SaveChangesAsync();
+
+                // Add the new event to the list
+                events?.Add(newEvent);
+
+                // Reset the form
+                newEvent = new Event();
+
+                connectionStatus = "Event added successfully.";
+                Console.WriteLine("Event added successfully.");
+            }
+            else
+            {
+                connectionStatus = "Error: Please fill out all fields.";
+                Console.WriteLine("Error: Please fill out all fields.");
+            }
+        }
+        catch (Exception ex)
+        {
+            connectionStatus = $"Error adding event: {ex.Message}";
+            Console.WriteLine($"Error adding event: {ex.Message}");
+        }
+    }
+}
